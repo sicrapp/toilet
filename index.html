@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบประเมินความพึงพอใจห้องน้ำ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+        
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #fff5f7;
+        }
+        
+        .rating-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+        }
+        
+        .rating-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 18%;
+        }
+        
+        .rating-item.selected {
+            transform: scale(1.1);
+        }
+        
+        .emoji {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+        
+        .rating-item.selected .emoji {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+        
+        .rating-text {
+            font-size: 0.75rem;
+            text-align: center;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .rating-item.selected .rating-text {
+            color: #d53f8c;
+            font-weight: 500;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #f687b3 0%, #d53f8c 100%);
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(213, 63, 140, 0.3);
+        }
+        
+        .success-animation {
+            animation: successPulse 1s ease-in-out;
+        }
+        
+        @keyframes successPulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .header-wave {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            z-index: -1;
+        }
+        
+        .header-wave svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 150px;
+        }
+        
+        .header-wave .shape-fill {
+            fill: #FBCFE8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-wave">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+        </svg>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-md relative z-10">
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-semibold text-pink-600 mb-2">แบบประเมินความพึงพอใจห้องน้ำ</h1>
+                <p class="text-gray-500 text-sm">กรุณาให้คะแนนความพึงพอใจของท่าน</p>
+            </div>
+            
+            <form id="satisfactionForm" class="space-y-6">
+                <!-- ความสะอาด -->
+                <div class="bg-pink-50 p-4 rounded-xl">
+                    <h2 class="text-lg font-medium text-pink-700 mb-3">1. ความสะอาด</h2>
+                    <div class="rating-container" id="cleanliness-rating">
+                        <div class="rating-item" data-value="5" onclick="selectRating('cleanliness', 5, this)">
+                            <div class="emoji">😍</div>
+                            <div class="rating-text">มากที่สุด</div>
+                        </div>
+                        <div class="rating-item" data-value="4" onclick="selectRating('cleanliness', 4, this)">
+                            <div class="emoji">😊</div>
+                            <div class="rating-text">มาก</div>
+                        </div>
+                        <div class="rating-item" data-value="3" onclick="selectRating('cleanliness', 3, this)">
+                            <div class="emoji">😐</div>
+                            <div class="rating-text">ปานกลาง</div>
+                        </div>
+                        <div class="rating-item" data-value="2" onclick="selectRating('cleanliness', 2, this)">
+                            <div class="emoji">😕</div>
+                            <div class="rating-text">น้อย</div>
+                        </div>
+                        <div class="rating-item" data-value="1" onclick="selectRating('cleanliness', 1, this)">
+                            <div class="emoji">😞</div>
+                            <div class="rating-text">ควรปรับปรุง</div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="cleanliness" id="cleanliness" required>
+                </div>
+                
+                <!-- ความพร้อมใช้ของอุปกรณ์ -->
+                <div class="bg-pink-50 p-4 rounded-xl">
+                    <h2 class="text-lg font-medium text-pink-700 mb-3">2. ความพร้อมใช้ของอุปกรณ์</h2>
+                    <div class="rating-container" id="equipment-rating">
+                        <div class="rating-item" data-value="5" onclick="selectRating('equipment', 5, this)">
+                            <div class="emoji">😍</div>
+                            <div class="rating-text">มากที่สุด</div>
+                        </div>
+                        <div class="rating-item" data-value="4" onclick="selectRating('equipment', 4, this)">
+                            <div class="emoji">😊</div>
+                            <div class="rating-text">มาก</div>
+                        </div>
+                        <div class="rating-item" data-value="3" onclick="selectRating('equipment', 3, this)">
+                            <div class="emoji">😐</div>
+                            <div class="rating-text">ปานกลาง</div>
+                        </div>
+                        <div class="rating-item" data-value="2" onclick="selectRating('equipment', 2, this)">
+                            <div class="emoji">😕</div>
+                            <div class="rating-text">น้อย</div>
+                        </div>
+                        <div class="rating-item" data-value="1" onclick="selectRating('equipment', 1, this)">
+                            <div class="emoji">😞</div>
+                            <div class="rating-text">ควรปรับปรุง</div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="equipment" id="equipment" required>
+                </div>
+                
+                <!-- ความพึงพอใจโดยรวม -->
+                <div class="bg-pink-50 p-4 rounded-xl">
+                    <h2 class="text-lg font-medium text-pink-700 mb-3">3. ความพึงพอใจโดยรวม</h2>
+                    <div class="rating-container" id="overall-rating">
+                        <div class="rating-item" data-value="5" onclick="selectRating('overall', 5, this)">
+                            <div class="emoji">😍</div>
+                            <div class="rating-text">มากที่สุด</div>
+                        </div>
+                        <div class="rating-item" data-value="4" onclick="selectRating('overall', 4, this)">
+                            <div class="emoji">😊</div>
+                            <div class="rating-text">มาก</div>
+                        </div>
+                        <div class="rating-item" data-value="3" onclick="selectRating('overall', 3, this)">
+                            <div class="emoji">😐</div>
+                            <div class="rating-text">ปานกลาง</div>
+                        </div>
+                        <div class="rating-item" data-value="2" onclick="selectRating('overall', 2, this)">
+                            <div class="emoji">😕</div>
+                            <div class="rating-text">น้อย</div>
+                        </div>
+                        <div class="rating-item" data-value="1" onclick="selectRating('overall', 1, this)">
+                            <div class="emoji">😞</div>
+                            <div class="rating-text">ควรปรับปรุง</div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="overall" id="overall" required>
+                </div>
+                
+                <!-- ข้อเสนอแนะ -->
+                <div class="bg-pink-50 p-4 rounded-xl">
+                    <h2 class="text-lg font-medium text-pink-700 mb-3">4. ข้อเสนอแนะ</h2>
+                    <textarea name="feedback" id="feedback" rows="3" class="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none" placeholder="กรุณาระบุข้อเสนอแนะของท่าน (ถ้ามี)"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn w-full py-3 px-6 text-white font-medium rounded-xl shadow-md">
+                    ส่งแบบประเมิน
+                </button>
+            </form>
+        </div>
+        
+        <div class="text-center text-gray-500 text-xs">
+            © 2023 ระบบแบบประเมินความพึงพอใจห้องน้ำ
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div class="bg-white rounded-2xl p-8 max-w-sm mx-4 relative z-10 success-animation">
+            <div class="text-center">
+                <div class="text-5xl mb-4">✅</div>
+                <h3 class="text-xl font-medium text-gray-900 mb-2">ขอบคุณสำหรับการประเมิน</h3>
+                <p class="text-gray-500 mb-6">ข้อมูลของท่านได้ถูกบันทึกเรียบร้อยแล้ว</p>
+                <button onclick="closeSuccessModal()" class="bg-pink-500 text-white py-2 px-6 rounded-lg hover:bg-pink-600 transition-all">
+                    ปิด
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ฟังก์ชันสำหรับการเลือกคะแนน
+        function selectRating(field, value, element) {
+            // ลบคลาส selected จากทุกรายการในกลุ่มเดียวกัน
+            const container = document.getElementById(field + '-rating');
+            const items = container.querySelectorAll('.rating-item');
+            items.forEach(item => item.classList.remove('selected'));
+            
+            // เพิ่มคลาส selected ให้กับรายการที่เลือก
+            element.classList.add('selected');
+            
+            // กำหนดค่าให้กับ input hidden
+            document.getElementById(field).value = value;
+        }
+        
+        // ฟังก์ชันสำหรับการส่งฟอร์ม
+        document.getElementById('satisfactionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // ตรวจสอบว่าได้เลือกคะแนนครบทุกข้อหรือไม่
+            const cleanliness = document.getElementById('cleanliness').value;
+            const equipment = document.getElementById('equipment').value;
+            const overall = document.getElementById('overall').value;
+            
+            if (!cleanliness || !equipment || !overall) {
+                alert('กรุณาให้คะแนนความพึงพอใจให้ครบทุกข้อ');
+                return;
+            }
+            
+            // เตรียมข้อมูลสำหรับส่ง
+            const formData = new FormData(this);
+            
+            // แสดงการโหลด
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="animate-pulse">กำลังส่งข้อมูล...</span>';
+            submitBtn.disabled = true;
+            
+            // ส่งข้อมูลไปยัง Google Apps Script
+            fetch('https://script.google.com/macros/s/AKfycbwNoen8T08A-wJ4dELTa5Ocu9-jl1_WTL_ZlmnLUNGamNCeSZb4gi9cRUPf8aMnYLxEwQ/exec', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // แสดง Success Modal
+                document.getElementById('successModal').classList.remove('hidden');
+                
+                // รีเซ็ตฟอร์ม
+                document.getElementById('satisfactionForm').reset();
+                
+                // ลบคลาส selected จากทุกรายการ
+                document.querySelectorAll('.rating-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+                // รีเซ็ต input hidden
+                document.getElementById('cleanliness').value = '';
+                document.getElementById('equipment').value = '';
+                document.getElementById('overall').value = '';
+                
+                // คืนค่าปุ่มส่ง
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+                
+                // คืนค่าปุ่มส่ง
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+        
+        // ฟังก์ชันสำหรับปิด Success Modal
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.add('hidden');
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9620bd01b3e9130f',t:'MTc1Mjk5NjQ3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
