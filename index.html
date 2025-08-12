@@ -203,6 +203,24 @@
                     <textarea name="feedback" id="feedback" rows="3" class="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none" placeholder="กรุณาระบุข้อเสนอแนะของท่าน (ถ้ามี)"></textarea>
                 </div>
                 
+                <!-- แนบรูปภาพประกอบ -->
+                <div class="bg-pink-50 p-4 rounded-xl">
+                    <h2 class="text-lg font-medium text-pink-700 mb-3">5. แนบรูปภาพประกอบ</h2>
+                    <div class="border-2 border-dashed border-pink-300 rounded-lg p-6 text-center">
+                        <input type="file" id="imageUpload" name="image" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(this)">
+                        <div id="uploadArea" onclick="document.getElementById('imageUpload').click()" class="cursor-pointer">
+                            <div class="text-4xl mb-2">📷</div>
+                            <p class="text-pink-600 font-medium mb-1">คลิกเพื่อถ่ายภาพหรือเลือกรูปภาพ</p>
+                            <p class="text-gray-500 text-sm">รองรับไฟล์ JPG, PNG (ไม่เกิน 5MB)</p>
+                        </div>
+                        <div id="imagePreview" class="hidden mt-4">
+                            <img id="previewImg" src="" alt="Preview" class="max-w-full h-32 object-cover rounded-lg mx-auto">
+                            <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
+                            <button type="button" onclick="removeImage()" class="text-red-500 text-sm mt-2 hover:text-red-700">ลบรูปภาพ</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <button type="submit" class="submit-btn w-full py-3 px-6 text-white font-medium rounded-xl shadow-md">
                     ส่งแบบประเมิน
                 </button>
@@ -210,7 +228,7 @@
         </div>
         
         <div class="text-center text-gray-500 text-xs">
-            © 2023 ระบบแบบประเมินความพึงพอใจห้องน้ำ
+            © 2025 ระบบแบบประเมินความพึงพอใจห้องน้ำ
         </div>
     </div>
     
@@ -244,14 +262,70 @@
             document.getElementById(field).value = value;
         }
         
+        // ตัวแปรสำหรับเก็บข้อมูลรูปภาพ
+        let imageData = null;
+        
+        // ฟังก์ชันสำหรับจัดการการอัปโหลดรูปภาพ
+        function handleImageUpload(input) {
+            const file = input.files[0];
+            if (file) {
+                // ตรวจสอบขนาดไฟล์ (5MB = 5 * 1024 * 1024 bytes)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('ขนาดไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 5MB');
+                    input.value = '';
+                    return;
+                }
+                
+                // ตรวจสอบประเภทไฟล์
+                if (!file.type.startsWith('image/')) {
+                    alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+                    input.value = '';
+                    return;
+                }
+                
+                // อ่านไฟล์และแปลงเป็น base64
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // แสดงตัวอย่างรูปภาพ
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('fileName').textContent = file.name;
+                    document.getElementById('uploadArea').classList.add('hidden');
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                    
+                    // เก็บข้อมูลรูปภาพสำหรับส่งไปยัง server
+                    imageData = {
+                        base64: e.target.result.split(',')[1], // ลบ "data:image/...;base64," ออก
+                        filename: file.name,
+                        mimeType: file.type,
+                        size: file.size
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // ฟังก์ชันสำหรับลบรูปภาพ
+        function removeImage() {
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('previewImg').src = '';
+            document.getElementById('fileName').textContent = '';
+            document.getElementById('uploadArea').classList.remove('hidden');
+            document.getElementById('imagePreview').classList.add('hidden');
+            imageData = null; // ลบข้อมูลรูปภาพ
+        }
+        
         // ฟังก์ชันสำหรับการส่งฟอร์ม
         document.getElementById('satisfactionForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            console.log('Form submitted'); // Debug log
             
             // ตรวจสอบว่าได้เลือกคะแนนครบทุกข้อหรือไม่
             const cleanliness = document.getElementById('cleanliness').value;
             const equipment = document.getElementById('equipment').value;
             const overall = document.getElementById('overall').value;
+            
+            console.log('Ratings:', { cleanliness, equipment, overall }); // Debug log
             
             if (!cleanliness || !equipment || !overall) {
                 alert('กรุณาให้คะแนนความพึงพอใจให้ครบทุกข้อ');
@@ -259,7 +333,23 @@
             }
             
             // เตรียมข้อมูลสำหรับส่ง
-            const formData = new FormData(this);
+            const submitData = {
+                cleanliness: cleanliness,
+                equipment: equipment,
+                overall: overall,
+                feedback: document.getElementById('feedback').value || ''
+            };
+            
+            // เพิ่มข้อมูลรูปภาพถ้ามี
+            if (imageData) {
+                submitData.imageBase64 = imageData.base64;
+                submitData.imageFilename = imageData.filename;
+                submitData.imageMimeType = imageData.mimeType;
+                submitData.imageSize = imageData.size;
+                console.log('Image data included:', imageData.filename); // Debug log
+            }
+            
+            console.log('Submit data:', submitData); // Debug log
             
             // แสดงการโหลด
             const submitBtn = this.querySelector('button[type="submit"]');
@@ -270,24 +360,60 @@
             // ส่งข้อมูลไปยัง Google Apps Script
             fetch('https://script.google.com/macros/s/AKfycbwNoen8T08A-wJ4dELTa5Ocu9-jl1_WTL_ZlmnLUNGamNCeSZb4gi9cRUPf8aMnYLxEwQ/exec', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+                body: JSON.stringify(submitData)
             })
             .then(response => {
-                // แสดง Success Modal
-                document.getElementById('successModal').classList.remove('hidden');
-                
-                // รีเซ็ตฟอร์ม
-                document.getElementById('satisfactionForm').reset();
-                
-                // ลบคลาส selected จากทุกรายการ
-                document.querySelectorAll('.rating-item').forEach(item => {
-                    item.classList.remove('selected');
-                });
-                
-                // รีเซ็ต input hidden
-                document.getElementById('cleanliness').value = '';
-                document.getElementById('equipment').value = '';
-                document.getElementById('overall').value = '';
+                console.log('Response status:', response.status); // Debug log
+                return response.text(); // Get as text first to handle any parsing issues
+            })
+            .then(text => {
+                console.log('Response text:', text); // Debug log
+                try {
+                    const data = JSON.parse(text);
+                    if (data.result === 'success') {
+                        // แสดง Success Modal
+                        document.getElementById('successModal').classList.remove('hidden');
+                        
+                        // รีเซ็ตฟอร์ม
+                        document.getElementById('satisfactionForm').reset();
+                        
+                        // ลบคลาส selected จากทุกรายการ
+                        document.querySelectorAll('.rating-item').forEach(item => {
+                            item.classList.remove('selected');
+                        });
+                        
+                        // รีเซ็ต input hidden
+                        document.getElementById('cleanliness').value = '';
+                        document.getElementById('equipment').value = '';
+                        document.getElementById('overall').value = '';
+                        
+                        // รีเซ็ตรูปภาพ
+                        removeImage();
+                    } else {
+                        throw new Error(data.message || 'Unknown error');
+                    }
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    // If it's not JSON, it might still be successful
+                    if (text.includes('success') || text.includes('Data saved')) {
+                        document.getElementById('successModal').classList.remove('hidden');
+                        
+                        // รีเซ็ตฟอร์ม
+                        document.getElementById('satisfactionForm').reset();
+                        document.querySelectorAll('.rating-item').forEach(item => {
+                            item.classList.remove('selected');
+                        });
+                        document.getElementById('cleanliness').value = '';
+                        document.getElementById('equipment').value = '';
+                        document.getElementById('overall').value = '';
+                        removeImage();
+                    } else {
+                        throw parseError;
+                    }
+                }
                 
                 // คืนค่าปุ่มส่ง
                 submitBtn.innerHTML = originalText;
@@ -295,7 +421,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง\n\nError: ' + error.message);
                 
                 // คืนค่าปุ่มส่ง
                 submitBtn.innerHTML = originalText;
@@ -308,5 +434,5 @@
             document.getElementById('successModal').classList.add('hidden');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9620bd01b3e9130f',t:'MTc1Mjk5NjQ3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96dfc12d22849bba',t:'MTc1NDk5OTQyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
